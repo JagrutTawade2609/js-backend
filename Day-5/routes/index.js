@@ -6,5 +6,5 @@ const MainRouter = Router();
 
 MainRouter.use('/user', UserRouter)
 MainRouter.use('/auth', AuthRouter)
-MainRouter.get('/admin', AdminRouter)
+MainRouter.use('/admin', AdminRouter)
 export default MainRouter

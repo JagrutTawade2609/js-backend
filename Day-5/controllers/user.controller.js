@@ -1,4 +1,4 @@
-import UserModel from "../models/user.schema.js";
+    import UserModel from "../models/user.schema.js";
 export const profile = (req,res) => {
     res.json( { Name: 'Jagrut', Desc: 'This is from controller'})
 }
@@ -14,7 +14,7 @@ export const updateProfile = async (req,res) => {
         const updatedData = {};
         if (name) updatedData.name = name
         if (email) updatedData.email = email
-        consle.log(updatedData);
+        console.log(updatedData);
         const user = await UserModel.findByIdAndUpdate(id, updatedData, { new: true });
         res.json({ message: `User profile with id ${id} updated successfully`, updatedData: user })
     } catch (error) {

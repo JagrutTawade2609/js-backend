@@ -1,15 +1,22 @@
 import UserModel from "../models/user.schema.js";
 
 export const AllUsers = async (req, res) => {
-    res.status(200).json({ message: "All users fetched successfully", users: ['Jagrut'] });
     try {
-        // Logic to fetch all users from the database
-        const users = await UserModel.find(); // Assuming you have a UserModel defined
-        res.status(200).json({ message: "All users fetched successfully", users });
+        // Fetch all users
+        const users = await UserModel.find();
+
+        return res.status(200).json({
+            message: "All users fetched successfully",
+            users
+        });
+
     } catch (error) {
-        res.status(500).json({ message: "Error fetching users", error: error.message });
+        return res.status(500).json({
+            message: "Error fetching users",
+            error: error.message
+        });
     }
-}
+};
 
 export const singleUser = async (req, res) => {
     const { id } = req.params;
