@@ -6,11 +6,11 @@ export const Register = async (req, res) => {
         if(!name || !email || !password || !role){
             return res.status(400).json({message: "All fields are required"})
         }
-        const user = new UserModel({name, email, password, role});
-        await user.save();
-        res.status(201).json({
+        const user = new UserModel({name, email, password, role}); // Create a new user instance
+        await user.save(); // Save the user to the database
+        res.status(201).json({ 
             message: "user registered successfully", 
-            user: { name, email, password, role}
+            user: { name, email, password, role} // Return the user details in the response (excluding sensitive information like password)
         
         })
     }catch(error){
