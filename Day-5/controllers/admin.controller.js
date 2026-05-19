@@ -18,6 +18,23 @@ export const AllUsers = async (req, res) => {
     }
 };
 
+export const AllSellers = async (req, res) => {
+    try {
+        // Fetch all sellers
+        const sellers = await UserModel.find({ role: 'seller' }); // Assuming you have a role field to differentiate between users and sellers
+
+        return res.status(200).json({
+            message: "All sellers fetched successfully",
+            sellers
+        });
+
+    } catch (error) {
+        return res.status(500).json({
+            message: "Error fetching sellers",
+            error: error.message
+        });
+    }
+};
 export const singleUser = async (req, res) => {
     const { id } = req.params;
     try {

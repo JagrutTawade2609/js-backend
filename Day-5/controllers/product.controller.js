@@ -53,7 +53,14 @@ export const searchProducts = async(req,res) => {
                 message: 'Please provide a search query parameter' 
             });
         }
-        const products = await ProductModel.find({ name: { $regex: query, $options: 'i' } }); // Search for products in the database using a case-insensitive regex match on the name field
+        const products = await ProductModel.find(
+            { $or: [
+                { name: { $regex: query, $options: 'i' } }, 
+                { description: { $regex: query, $options: 'i' } },
+                { category: { $regex: query, $options: 'i' } }
+            ] 
+        }
+        ); // Search for products in the database using a case-insensitive regex match on the name and description fields
         return res.status(200).json({ message: `Products matching search query "${query}"`, searchResults: products })
     } catch (error) {
         res.status(500).json({ message: 'An error occurred while searching for products', error: error.message })
