@@ -1,5 +1,6 @@
 import UserModel from "../models/user.schema.js";
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 export const Register = async (req, res) => {
     try{
         const {name, email, password, role} = req.body;
@@ -23,7 +24,7 @@ export const Register = async (req, res) => {
         
         })
     }catch(error){
-        res.status(500).json({message: "Error registering user", error: error.message})
+        return res.status(500).json({message: "Error registering user", error: error.message})
     }
 }
 export const Login = async (req, res) => {
@@ -32,17 +33,47 @@ export const Login = async (req, res) => {
         if (!email || !password) {
             return res.status(400).json({ message: "Email and password are required" }); // If email or password is missing, return a 400 Bad Request response with an error message
         }
-        const user = await UserModel.findOne({ email: email }); // Find the user in the database by email
+        const user = await UserModel.findOne({ email: email} ); // Find the user in the database by email
         if (!user) {
-            return res.status(404).json({ message: "User not found" }); // If the user is not found, return a 404 Not Found response with an error message
+            return res.status(404).json({ message: "User not found", success: false }); // If the user is not found, return a 404 Not Found response with an error message
         }
         const isPasswordValid = await bcrypt.compare(password, user.password); // Compare the provided password with the hashed password stored in the database using bcrypt
         if (!isPasswordValid) {
-            return res.status(401).json({ message: "Invalid password" }); // If the password is invalid, return a 401 Unauthorized response with an error message
+            return res.status(401).json({ message: "Invalid password", success: false }); // If the password is invalid, return a 401 Unauthorized response with an error message
         }
-        res.status(200).json({ message: "Login successful", user: { name: user.name, email: user.email, role: user.role } }); // If login is successful, return a 200 OK response with a success message and user details (excluding sensitive information like password)
+        const token = jwt.sign({ 
+            userId: user._id, 
+            role: user.role }, 
+            process.env.JWT_SECRET, 
+            { expiresIn: "1h" }
+        ); // Generate a JSON Web Token (JWT) with the user's ID and role
+        res.cookie("token", token, { httpOnly: true }); // Set the token as an HTTP-only cookie in the response
+        const userData = {
+            name: user.name,
+            email: user.email,
+            role: user.role
+        }; // Prepare the user data to be sent in the response (excluding sensitive information like password)  
+        return res.status(200).json({ token, message: "Login successful", user: userData }); // If login is successful, return a 200 OK response with a success message and user details (excluding sensitive information like password)
     } catch (error) {
-        res.status(500).json({ message: "Error logging in", error: error.message }); // If an error occurs during the login process, return a 500 Internal Server Error response with an error message
+        return res.status(500).json({ message: "Error logging in", error: error.message }); // If an error occurs during the login process, return a 500 Internal Server Error response with an error message
+    }
+};
+
+export const GetCurrentUser = async (req, res) => {
+    try {
+        const token = req.cookies.token; // Retrieve the token from the request cookies
+        if (!token) {
+            return res.status(401).json({ message: "Unauthorized" }); // If no token is found, return a 401 Unauthorized response with an error message
+        }
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const user = await UserModel.findById(decoded.userId).select("-password"); // Find the user in the database by ID and exclude the password field
+        if (!user) {
+            return res.status(404).json({ message: "User not found" }); // If the user is not found, return a 404 Not Found response with an error message
+        }
+        return res.status(200).json({ user }); // If the user is found, return a 200 OK response with the user details (excluding sensitive information like password)
+    }
+    catch (error) {
+        return res.status(500).json({ message: "Error retrieving user", error: error.message }); // If an error occurs during the process, return a 500 Internal Server Error response with an error message
     }
 };
 
@@ -55,8 +86,8 @@ export const UpdateUserPassword = async (req, res) => {
                 await UserModel.findByIdAndUpdate(users[i]._id, { password: hashedPassword }); // Update the user's password in the database with the hashed version
             }
         }
-        res.status(200).json({ message: "Passwords updated successfully" }); // Return a success message in the response    
+        return res.status(200).json({ message: "Passwords updated successfully" }); // Return a success message in the response    
     } catch (error) {
-        res.status(500).json({ message: "Error updating password", error: error.message }); // If an error occurs, return a 500 Internal Server Error response with an error message
+        return res.status(500).json({ message: "Error updating password", error: error.message }); // If an error occurs, return a 500 Internal Server Error response with an error message
     }
 };
