@@ -45,10 +45,9 @@ export const Login = async (req, res) => {
         const token = jwt.sign({ 
             userId: user._id, 
             role: user.role }, 
-            process.env.JWT_SECRET, 
-            { expiresIn: "1h" }
+            process.env.JWT_SECRET
         ); // Generate a JSON Web Token (JWT) with the user's ID and role
-        res.cookie("token", token, { httpOnly: true }); // Set the token as an HTTP-only cookie in the response
+        res.cookie("token", token); // Set the token as an HTTP-only cookie in the response
         const userData = {
             name: user.name,
             email: user.email,
@@ -64,14 +63,19 @@ export const GetCurrentUser = async (req, res) => {
     try {
         const token = req.cookies.token; // Retrieve the token from the request cookies
         if (!token) {
-            return res.status(401).json({ message: "Unauthorized", success: false }); // If no token is found, return a 401 Unauthorized response with an error message
+            return res.status(401).json({ success: false, message: "Unauthorized" }); // If no token is found, return a 401 Unauthorized response with an error message
         }
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         const user = await UserModel.findById(decoded.userId).select("-password"); // Find the user in the database by ID and exclude the password field
         if (!user) {
-            return res.status(404).json({ message: "User not found", success: false }); // If the user is not found, return a 404 Not Found response with an error message
+            return res.status(404).json({ success: false, message: "User not found" }); // If the user is not found, return a 404 Not Found response with an error message
         }
-        return res.status(200).json({ success: true, user }); // If the user is found, return a 200 OK response with the user details (excluding sensitive information like password)
+        const userData = {
+            name: user.name,
+            email: user.email,
+            role: user.role
+        }; // Prepare the user data to be sent in the response (excluding sensitive information like password)
+        return res.status(200).json({ success: true, user: userData }); // If the user is found, return a 200 OK response with the user details (excluding sensitive information like password)
     }
     catch (error) {
         return res.status(500).json({ message: "Error retrieving user", error: error.message, success: false }); // If an error occurs during the process, return a 500 Internal Server Error response with an error message
@@ -90,5 +94,14 @@ export const UpdateUserPassword = async (req, res) => {
         return res.status(200).json({ message: "Passwords updated successfully", success: true }); // Return a success message in the response    
     } catch (error) {
         return res.status(500).json({ message: "Error updating password", error: error.message, success: false }); // If an error occurs, return a 500 Internal Server Error response with an error message
+    }
+};
+
+export const logout = async (req, res) => {
+    try {
+        res.clearCookie("token"); // Clear the token cookie from the response
+        return res.status(200).json({ success: true, message: "Logout successful" }); // Return a success message in the response
+    } catch (error) {
+        return res.status(500).json({ success: false, message: "Error logging out", error: error.message }); // If an error occurs, return a 500 Internal Server Error response with an error message
     }
 };
