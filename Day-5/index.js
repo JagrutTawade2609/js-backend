@@ -17,8 +17,14 @@ app.use(cors({
 }))
 
 app.use("/api/v1", verifyAndDecodeToken, MainRouter) // Apply the token verification middleware to all routes under /api/v1
-mongoose.connect(process.env.MONGODB_URL).then(() => {
+mongoose.connect(process.env.MONGODB_URL)
+.then(() => {
     console.log("Connected to MongoDB");
-})
 
-app.listen(4000, () => {console.log("Port 4000 Running")})
+    app.listen(4000, () => {
+        console.log("Port 4000 Running");
+    });
+})
+.catch((err) => {
+    console.error(err);
+});
