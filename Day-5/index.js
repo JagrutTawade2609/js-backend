@@ -15,7 +15,10 @@ app.use(cors({
     origin: ["http://localhost:5173", "https://react-project-eight-livid.vercel.app"],
     credentials: true
 }))
-
+app.use(cors(corsOptions)); // Apply CORS middleware with the defined options
+app.get("/", (req, res) => {
+    res.send("Server is running")
+})
 app.use("/api/v1", verifyAndDecodeToken, MainRouter) // Apply the token verification middleware to all routes under /api/v1
 mongoose.connect(process.env.MONGODB_URL)
 .then(() => {
