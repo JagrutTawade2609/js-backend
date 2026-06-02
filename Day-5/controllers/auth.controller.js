@@ -47,7 +47,12 @@ export const Login = async (req, res) => {
             role: user.role }, 
             process.env.JWT_SECRET
         ); // Generate a JSON Web Token (JWT) with the user's ID and role
-        res.cookie("token", token); // Set the token as an HTTP-only cookie in the response
+        res.cookie("token", token, {
+            httpOnly: true,
+            secure: true,
+            sameSite: "none",
+            maxAge: 7 * 24 * 60 * 60 * 1000
+        }); // Set the token as an HTTP-only cookie in the response
         const userData = {
             name: user.name,
             email: user.email,
@@ -99,7 +104,11 @@ export const UpdateUserPassword = async (req, res) => {
 
 export const logout = async (req, res) => {
     try {
-        res.clearCookie("token"); // Clear the token cookie from the response
+        res.clearCookie("token",{
+            httpOnly: true,
+            secure: true,
+            sameSite: "none"
+        }); // Clear the token cookie from the response
         return res.status(200).json({ success: true, message: "Logout successful" }); // Return a success message in the response
     } catch (error) {
         return res.status(500).json({ success: false, message: "Error logging out", error: error.message }); // If an error occurs, return a 500 Internal Server Error response with an error message
