@@ -15,7 +15,7 @@ app.use(cors({
     origin: ["http://localhost:5173", "https://react-project-eight-livid.vercel.app"],
     credentials: true
 }))
-app.use(cors(corsOptions)); // Apply CORS middleware with the defined options
+//app.use(cors(corsOptions)); // Apply CORS middleware with the defined options
 app.get("/", (req, res) => {
     res.send("Server is running")
 })
