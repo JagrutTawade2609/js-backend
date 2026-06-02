@@ -1,3 +1,4 @@
+import OrderModel from "../models/order.schema.js";
 import ProductModel from "../models/product.schema.js";
 export const addProduct = async (req,res) => {
     try {
@@ -59,3 +60,23 @@ export const getProducts = async (req,res) => {
             return res.status(500).json({ success: false, message: 'An error occurred while updating the product', error: error.message })
         }
     }
+
+    export const SellerDashboard = async (req,res) => {
+        try {
+            const userId = req.userId; // Get the userId from the query parameters
+            const products = await ProductModel.find({ seller: userId }).populate('seller', 'name email') // Retrieve products for the specific seller
+            const orders = await OrderModel.find({ "products.product": { $in: await ProductModel.find({ seller: userId }).select('_id') } }).populate('products.product', 'name price image seller').populate('user', 'name email') // Retrieve orders that include products from the specific seller
+            orders.forEach(order => {
+                order.products = order.products.filter(item => item.product?.seller?.toString() === userId); // Filter products in each order to include only those from the specific seller
+            });
+            const data = {
+                productsCount: products.length,
+                orders: orders,
+                ordersCount: orders.length,
+                totalRevenue: orders.reduce((total, order) => total + order.products.reduce((orderTotal, product) => orderTotal + (product.product.price * product.quantity), 0), 0)
+            }
+            return res.status(200).json({ success: true, message: 'Seller dashboard retrieved successfully', products: products, orders: orders, data: data })
+        } catch (error) {
+            return res.status(500).json({ success: false, message: 'An error occurred while retrieving the seller dashboard', error: error.message })
+        }
+    }     

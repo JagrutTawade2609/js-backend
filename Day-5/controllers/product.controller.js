@@ -66,3 +66,32 @@ export const searchProducts = async(req,res) => {
         res.status(500).json({ message: 'An error occurred while searching for products', error: error.message })
     }
 }
+
+export const AllProducts = async(req,res) => {
+    try {
+        const products = await ProductModel.find(); // Fetch all products from the database
+        return res.status(200).json({ success: true, message: 'All products retrieved successfully', products: products })
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'An error occurred while retrieving all products', error: error.message })
+    }
+}
+
+export const SingleProduct = async(req,res) => {
+    try {
+        const { id } = req.params; // Extract the product ID from the request query parameters
+        if (!id) { // Check if the product ID is provided
+            return res.status(400).json({ // If not, return a 400 Bad Request response with an error message
+                message: 'Please provide a product ID query parameter' 
+            });
+        }
+        const product = await ProductModel.findById(id); // Fetch the single product from the database using the provided ID
+        if (!product) { // Check if a product with the given ID exists
+            return res.status(404).json({ // If not, return a 404 Not Found response with an error message
+                message: 'Product not found' 
+            });
+        }
+        return res.status(200).json({ success: true, message: 'Product retrieved successfully', product: product })
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'An error occurred while retrieving the product', error: error.message })
+    }
+}

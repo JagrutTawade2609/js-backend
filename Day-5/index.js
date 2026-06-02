@@ -1,3 +1,5 @@
+import dns from "node:dns/promises"; 
+console.log(await dns.getServers());
 import express from 'express';
 import MainRouter from './routes/index.js';
 import mongoose from 'mongoose';
